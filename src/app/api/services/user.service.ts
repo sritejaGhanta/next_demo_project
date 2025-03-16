@@ -8,6 +8,6 @@ export async function GetUser(where){
     return await user.findOne(where)
 }
 
-export async function InsertUser(user){
-    return await user.insertOne(user, options)
+export async function InsertUser(userInfo){
+    return await user.insertOne(userInfo, options)
 }

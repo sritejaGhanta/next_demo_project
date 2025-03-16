@@ -6,7 +6,7 @@ class Axios {
     constructor() {
         this.ax = axios.create({
             baseURL: ENV.BASE_URL,
-            timeout: 1000,
+            timeout: 10000,
             headers: {
                 "Content-Type": "application/json"
             }

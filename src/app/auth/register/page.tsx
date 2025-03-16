@@ -12,9 +12,9 @@ import Link from 'next/link';
 export default function Registration(prop: any) {
     const dispatch = useDispatch();
     const submire = (value) => {
-        Axios.post(ROUTE.USER.LOGIN, value).then((res) => {
+        Axios.post(ROUTE.USER.CREATE, value).then((res) => {
             if (res.settings.success) {
-                redirect('auth/login')
+                redirect('login')
             }
             dispatch(sEmmitNotification(res.settings));
         })
@@ -67,7 +67,7 @@ export default function Registration(prop: any) {
 
                                     onSubmit={(values, { setSubmitting }) => {
                                         setSubmitting(false);
-
+                                        submire(values)
                                     }}
                                 >
                                     {({
