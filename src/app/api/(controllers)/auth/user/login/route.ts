@@ -10,7 +10,7 @@ export async function POST(req: Request) {
         const user = await GetUser({ email: data.email })
         if (user.email && CheckPassword(data.password, user.password)) {
             const userInfo = {
-                id: user.id,
+                id: user._id,
                 first_name: user.first_name,
                 last_name: user.last_name,
                 email: user.email,
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
             DefaultRespone.message = "User login successfully.";
             DefaultRespone.data = userInfo;
             DefaultRespone.settings = {
-                token : CreateJWT(userInfo)
+                token : await CreateJWT(userInfo)
             }
 
         } else {
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
         }
 
     } catch (error) {
+        console.log(error)
         DefaultRespone.success = 0;
         DefaultRespone.message = error.message || DefaultRespone.message;
     }

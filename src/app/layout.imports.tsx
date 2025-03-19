@@ -2,27 +2,39 @@
 import { useEffect, useState } from "react";
 import store from "../lib/store";
 import { redirect } from "next/navigation";
-import { GetKey } from "../utils/general/localstorage";
+import { Clear, GetKey } from "../utils/general/localstorage";
 import { ENV } from "../envirolment/envirolment";
 import Axios from "@utils/axios/service.ts"
 import { ROUTE } from "./api/routes";
+import { decodeJwt } from 'jose';
 
 export { SessionProvider } from "next-auth/react"
 
 
 export function AppInitializer() {
   const acceptPaths = ['/auth/login', 'auth/register', 'api/auth/signin']
+  const logOut = () => {
+    Clear();
+    redirect('/auth/login');
+  }
 
   useEffect(() => {
     if (GetKey(ENV.TOKEN_KEY)) {
+      let tokenData = decodeJwt(GetKey(ENV.TOKEN_KEY))
+      if (!tokenData.data || ((Date.now() / 1000) > tokenData.exp)) {
+        logOut();
+      }
+
       Axios.get(ROUTE.USER.INFO).then(e => {
         console.log(e)
       })
 
     } else if (!GetKey(ENV.TOKEN_KEY) && !acceptPaths.includes(window.location.pathname)) {
-      redirect('/auth/login');
+      logOut();
     }
   }, [])
+
+
 
   return <>
     <Notification />

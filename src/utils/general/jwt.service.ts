@@ -1,9 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-
 export async function CreateJWT(data: any) {
-const secret = new TextEncoder().encode(process.env.APP_SECRET);
-
+  const secret = new TextEncoder().encode(process.env.APP_SECRET);
   return await new SignJWT({ data })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('1h')
@@ -11,7 +9,7 @@ const secret = new TextEncoder().encode(process.env.APP_SECRET);
 }
 
 export async function VerifyJWT(token: string) {
-const secret = new TextEncoder().encode(process.env.APP_SECRET);
+  const secret = new TextEncoder().encode(process.env.APP_SECRET);
 
   const result = {
     success: 0,
