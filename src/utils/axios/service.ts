@@ -1,6 +1,7 @@
 import axios from "axios"
 import { ENV } from "@env/envirolment";
 import { Clear, GetKey } from "../general/localstorage"
+import { APIRESPONSE } from "../interfaces";
 class Axios {
     ax: any;
 
@@ -14,11 +15,14 @@ class Axios {
         });
         this.ax.interceptors.response.use(
             (response) => {
-                if ([401].includes(response.status)) {
+                return response.data as APIRESPONSE
+            },
+            
+            (error) => {
+                if ([401].includes(error.status)) {
                     Clear();
                     window.location.href = "/auth/login"
                 }
-                return response.data;
             }
         )
         this.ax.interceptors.request.use((req) => {

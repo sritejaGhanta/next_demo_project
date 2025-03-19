@@ -10,7 +10,7 @@ export async function POST(req: Request) {
         const user = await GetUser({ email: data.email })
         if (user.email && CheckPassword(data.password, user.password)) {
             const userInfo = {
-                id: user._id,
+                id: user._id.toString(),
                 first_name: user.first_name,
                 last_name: user.last_name,
                 email: user.email,

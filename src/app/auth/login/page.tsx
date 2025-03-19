@@ -10,17 +10,18 @@ import { ENV } from '@env/envirolment'
 import { sEmmitNotification } from '@lib/slice'
 import { useDispatch } from 'react-redux'
 import { sSetUser } from '../../../lib/slice';
-import { redirect } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 
 
 export default function Login() {
     const dispatch = useDispatch();
+     const router = useRouter();
     const submire = (value) => {
         Axios.post(ROUTE.AUTH.LOGIN, value).then((res) => {
             if (res.settings.success) {
                 SetKey(ENV.TOKEN_KEY, res.settings.token);
                 dispatch(sSetUser(res.data))
-                redirect('/');
+                router.push('/dashbord');
             }
             dispatch(sEmmitNotification(res.settings));
         })

@@ -1,40 +1,61 @@
 "use client"
 import { useEffect, useState } from "react";
 import store from "../lib/store";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Clear, GetKey } from "../utils/general/localstorage";
 import { ENV } from "../envirolment/envirolment";
 import Axios from "@utils/axios/service.ts"
 import { ROUTE } from "./api/routes";
 import { decodeJwt } from 'jose';
+import { useDispatch } from "react-redux";
+import { APIRESPONSE } from "../utils/interfaces";
+import { sSetUser } from "../lib/slice";
 
 export { SessionProvider } from "next-auth/react"
 
 
 export function AppInitializer() {
-  const acceptPaths = ['/auth/login', 'auth/register', 'api/auth/signin']
+  const acceptPaths = ['/auth/login', 'auth/register', 'api/auth/signin'];
+  const router = useRouter();
+  const dispatch = useDispatch();
   const logOut = () => {
     Clear();
-    redirect('/auth/login');
+    router.push('/auth/login');
   }
 
-  useEffect(() => {
+  try {
     if (GetKey(ENV.TOKEN_KEY)) {
       let tokenData = decodeJwt(GetKey(ENV.TOKEN_KEY))
+      console.log(tokenData)
       if (!tokenData.data || ((Date.now() / 1000) > tokenData.exp)) {
-        logOut();
+        throw "Invalid token."
       }
 
-      Axios.get(ROUTE.USER.INFO).then(e => {
-        console.log(e)
+      let path = window.location.pathname;
+      const notAllowPath = [
+        '/auth/login',
+        '/auth/register'
+      ];
+
+      if (notAllowPath.includes(path) || path == '/') {
+        router.push('/dashbord')
+      }
+
+      Axios.get(ROUTE.USER.INFO).then((res: APIRESPONSE) => {
+        console.log(res)
+        if (!res.settings.success) {
+          throw "Api issue"
+        }
+        dispatch(sSetUser(res.data));
       })
 
     } else if (!GetKey(ENV.TOKEN_KEY) && !acceptPaths.includes(window.location.pathname)) {
-      logOut();
+      throw "Token not found."
     }
-  }, [])
-
-
+  } catch (error) {
+    console.log(error)
+    logOut();
+  }
 
   return <>
     <Notification />
