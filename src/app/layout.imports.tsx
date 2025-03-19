@@ -1,8 +1,33 @@
 "use client"
 import { useEffect, useState } from "react";
 import store from "../lib/store";
+import { redirect } from "next/navigation";
+import { GetKey } from "../utils/general/localstorage";
+import { ENV } from "../envirolment/envirolment";
+import Axios from "@utils/axios/service.ts"
+import { ROUTE } from "./api/routes";
 
 export { SessionProvider } from "next-auth/react"
+
+
+export function AppInitializer() {
+  const acceptPaths = ['/auth/login', 'auth/register', 'api/auth/signin']
+
+  useEffect(() => {
+    if (GetKey(ENV.TOKEN_KEY)) {
+      Axios.get(ROUTE.USER.INFO).then(e => {
+        console.log(e)
+      })
+
+    } else if (!GetKey(ENV.TOKEN_KEY) && !acceptPaths.includes(window.location.pathname)) {
+      redirect('/auth/login');
+    }
+  }, [])
+
+  return <>
+    <Notification />
+  </>
+}
 
 
 export function Notification() {

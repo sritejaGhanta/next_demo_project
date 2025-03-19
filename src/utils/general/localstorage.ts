@@ -1,5 +1,5 @@
 "use client"
-
+declare var localStorage: { setItem: (arg0: string, arg1: string) => void; getItem: (arg0: string) => string; clear: () => void; removeItem: (arg0: string) => void; };
 export function SetKey(key:string, value:string): void {
     localStorage.setItem(key, value)
 }

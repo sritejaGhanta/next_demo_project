@@ -12,7 +12,7 @@ import Link from 'next/link';
 export default function Registration(prop: any) {
     const dispatch = useDispatch();
     const submire = (value) => {
-        Axios.post(ROUTE.USER.CREATE, value).then((res) => {
+        Axios.post(ROUTE.AUTH.CREATE, value).then((res) => {
             if (res.settings.success) {
                 redirect('login')
             }

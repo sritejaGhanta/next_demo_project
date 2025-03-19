@@ -1,20 +1,28 @@
-import jwt  from 'jsonwebtoken';
-import { ENV } from '../../envirolment/envirolment';
+import { SignJWT, jwtVerify } from 'jose';
 
-export function CreateJWT(data) {
-    return jwt.sign(data, ENV.APP_SECRET, { expiresIn: 60 * 60 })
+
+export async function CreateJWT(data: any) {
+const secret = new TextEncoder().encode(process.env.APP_SECRET);
+
+  return await new SignJWT({ data })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('1h')
+    .sign(secret);
 }
 
-export function VerifyJWT(token) {
-    const result = {
-        success: 0,
-        data: {}
-    };
-    try {
-        result.data = jwt.verify(token, ENV.APP_SECRET)
-    } catch (error) {
-        console.error('Invalid token')
-    }
+export async function VerifyJWT(token: string) {
+const secret = new TextEncoder().encode(process.env.APP_SECRET);
 
-    return result;
+  const result = {
+    success: 0,
+    data: {},
+  };
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    result.success = 1;
+    result.data = payload;
+  } catch (error) {
+    console.error('JWT Verification Error:', error);
+  }
+  return result;
 }

@@ -1,7 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
-import store from '../lib/store'
-import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 
 export default function Home() {
