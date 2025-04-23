@@ -2,17 +2,18 @@
 import css from './css.module.css';
 import "./css.module.css";
 import { Formik } from 'formik';
-import Axios from "@utils/axios/service.ts"
-import { ROUTE } from '../../api/routes';
+import { Axios } from "@utils/axios/service.ts"
+import { ROUTE } from '../../../utils/axios/routes';
 import { useDispatch } from 'react-redux';
 import { sEmmitNotification } from '../../../lib/slice';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { API_RESPONSE } from '@utils/general/interface';
 
 export default function Registration(prop: any) {
     const dispatch = useDispatch();
     const submire = (value) => {
-        Axios.post(ROUTE.AUTH.CREATE, value).then((res) => {
+        Axios.post(ROUTE.AUTH.CREATE, value).then((res: API_RESPONSE) => {
             if (res.settings.success) {
                 redirect('login')
             }

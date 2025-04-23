@@ -1,8 +1,8 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { DefaultRespone } from "@utils/general/general";
-import { VerifyJWT } from '../../utils/general/jwt.service';
+import { VerifyJWT } from './general/jwt.service';
+import { DefaultResponse } from './general/general';
 
 // This function can be marked `async` if using `await` inside
 export async function ApiMiddleware(
@@ -18,21 +18,27 @@ export async function ApiMiddleware(
   let tokenData: any = {}
 
   if (!token && !accessUrls.includes(req.nextUrl.pathname)) {
-    DefaultRespone.success = -1;
-    DefaultRespone.message = "Unauthorized";
-    return NextResponse.json(DefaultRespone.json(), { status: 401 })
+    DefaultResponse.success = -1;
+    DefaultResponse.message = "Unauthorized";
+    return NextResponse.json(DefaultResponse.json(), { status: 401 })
   }
   if (token) {
     tokenData = await VerifyJWT(token);
     if (!tokenData.success) {
-      DefaultRespone.success = -1;
-      DefaultRespone.message = "Unauthorized";
-      return NextResponse.json(DefaultRespone.json(), { status: 401 })
-    } else {
-      req['tokent_params'] = tokenData.data
+      DefaultResponse.success = -1;
+      DefaultResponse.message = "Unauthorized";
+      return NextResponse.json(DefaultResponse.json(), { status: 401 })
     }
   }
-  return NextResponse.next(tokenData.data);
+//   return NextResponse.next(tokenData.data);
+
+  // Create a response and clone the request while modifying headers
+  const response = NextResponse.next();
+  if(tokenData?.data?.data){
+    response.headers.set('token_data', JSON.stringify(tokenData.data.data))
+  }
+
+  return response;
 }
 
 // See "Matching Paths" below to learn more

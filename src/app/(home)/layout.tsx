@@ -1,11 +1,13 @@
 "use client";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "../../../public/css/simple-datatables.css";
 import "../../../public/css/styles.css";
 import Link from "next/link";
 import { Clear, GetKey } from "../../utils/general/localstorage";
 import { usePathname, useRouter } from "next/navigation";
 import { ENV } from "../../envirolment/envirolment";
+import React from "react";
+import store from "../../lib/store";
 
 export default function RootLayout({
   children,
@@ -15,31 +17,37 @@ export default function RootLayout({
   prop: any;
 }>) {
   const route = useRouter();
-  const logOut = () => {
-    Clear();
-    route.push("/auth/login");
-  };
-
-  if (!GetKey(ENV.TOKEN_KEY)) {
-    logOut();
-  }
-
-  const toggelBtn = () => {
-    document.body.classList.toggle("sb-sidenav-toggled");
-    localStorage.setItem(
-      "sb|sidebar-toggle",
-      document.body.classList.contains("sb-sidenav-toggled")
-    );
-  };
-
   const pathname = usePathname();
   const ckPath: any = (path: string) => (pathname === path ? "active" : "");
 
+  const [user, setUser] = useState(store.getState().user.payload || {})
+
+  store.subscribe(() => {
+    setUser(store.getState().user.payload)
+  })
+
+  const logOut = useCallback(() => {
+    Clear();
+    route.push("/auth/login");
+  }, []);
+
+  const toggelBtn = useCallback(() => {
+    document.body.classList.toggle("sb-sidenav-toggled");
+    localStorage.setItem(
+      "sb|sidebar-toggle",
+      document.body.classList.contains("sb-sidenav-toggled") as any
+    );
+  }, []);
+  1
   useEffect(() => {
     setTimeout(() => {
       import("../../../public/js/font-awesome");
     }, 100);
   }, []);
+
+  if (!GetKey(ENV.TOKEN_KEY)) {
+    logOut();
+  }
 
   return (
     <>
@@ -48,7 +56,7 @@ export default function RootLayout({
           className={"navbar-brand ps-3 " + ckPath("/dashbord")}
           href="/dashbord"
         >
-          Start Bootstrap
+          Teja Next Practice
         </Link>
         <button
           className="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0"
@@ -73,9 +81,14 @@ export default function RootLayout({
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
+              <b className="text-light me-1">
+                {user.first_name} {user.last_name}
+              </b>
               <i>
                 <img
-                  src="https://img.icons8.com/bubbles/45/000000/user.png"
+                  width={25}
+                  height={25}
+                  src={user.profile || "https://img.icons8.com/bubbles/150/000000/user.png"}
                   className="img-radius"
                   alt="User-Profile-Image"
                 />
@@ -94,7 +107,9 @@ export default function RootLayout({
                 </Link>
               </li>
               <li>
-                <Link className="dropdown-item" href="user/change-password">
+                <Link 
+                className={"dropdown-item " + ckPath("/change-password")} 
+                href="change-password">
                   Change Password
                 </Link>
               </li>
@@ -128,24 +143,17 @@ export default function RootLayout({
                   </div>
                   Dashboard
                 </Link>
-                <div className="sb-sidenav-menu-heading">Interface</div>
+                <div className="sb-sidenav-menu-heading">Persnol Info</div>
                 <Link
-                  className="nav-link collapsed"
-                  href="#"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseLayouts"
-                  aria-expanded="false"
-                  aria-controls="collapseLayouts"
+                  className={"nav-link " + ckPath("/contacts")}
+                  href="/contacts"
                 >
                   <div className="sb-nav-link-icon">
-                    <i className="fas fa-columns"></i>
+                    <i className="fa-regular fa-circle-user"></i>
                   </div>
-                  Layouts
-                  <div className="sb-sidenav-collapse-arrow">
-                    <i className="fas fa-angle-down"></i>
-                  </div>
+                  Contacts
                 </Link>
-                <div
+                {/* <div
                   className="collapse"
                   id="collapseLayouts"
                   aria-labelledby="headingOne"
@@ -159,8 +167,8 @@ export default function RootLayout({
                       Light Sidenav
                     </Link>
                   </nav>
-                </div>
-                <Link
+                </div> */}
+                {/* <Link
                   className="nav-link collapsed"
                   href="#"
                   data-bs-toggle="collapse"
@@ -175,8 +183,8 @@ export default function RootLayout({
                   <div className="sb-sidenav-collapse-arrow">
                     <i className="fas fa-angle-down"></i>
                   </div>
-                </Link>
-                <div
+                </Link> */}
+                {/* <div
                   className="collapse"
                   id="collapsePages"
                   aria-labelledby="headingTwo"
@@ -249,8 +257,8 @@ export default function RootLayout({
                       </nav>
                     </div>
                   </nav>
-                </div>
-                <div className="sb-sidenav-menu-heading">Addons</div>
+                </div> */}
+                {/* <div className="sb-sidenav-menu-heading">Addons</div>
                 <Link className="nav-link" href="charts.html">
                   <div className="sb-nav-link-icon">
                     <i className="fas fa-chart-area"></i>
@@ -262,7 +270,7 @@ export default function RootLayout({
                     <i className="fas fa-table"></i>
                   </div>
                   Tables
-                </Link>
+                </Link> */}
               </div>
             </div>
             <div className="sb-sidenav-footer">

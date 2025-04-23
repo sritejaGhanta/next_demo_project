@@ -1,28 +1,29 @@
 import { NextResponse } from "next/server";
-import { DefaultRespone } from "@utils/general/general";
-import { CreateJWT } from "@utils/general/jwt.service";
-import { GetUser } from "../../../../services/user.service";
-import { CheckPassword } from "../../../../../../utils/general/general";
+import { UserService } from "../../../../services/user.service";
+import { User } from "../../../../database/scema/user.entity";
+import { prepateUserInfo } from "../../../user/info/route";
+import { CheckPassword, DefaultResponse } from "../../../../general/general";
+import { CreateJWT } from "../../../../general/jwt.service";
 
+/**
+ * User Loign Api
+ * @param req 
+ * @returns Object
+ */
 export async function POST(req: Request) {
     try {
         const data = await req.json();
-        const user = await GetUser({ email: data.email })
+        const condition = { email: data.email };
+        const user: User = await UserService.getUser(condition) as User;
+        console.log(CheckPassword(data.password, user.password), data.password, user.password)
         if (user.email && CheckPassword(data.password, user.password)) {
-            const userInfo = {
-                id: user._id.toString(),
-                first_name: user.first_name,
-                last_name: user.last_name,
-                email: user.email,
-                phone_number: user.phone_number,
-                gender: user.gender,
-            }
+            const userInfo = prepateUserInfo(user)
 
-            DefaultRespone.success = 1;
-            DefaultRespone.message = "User login successfully.";
-            DefaultRespone.data = userInfo;
-            DefaultRespone.settings = {
-                token : await CreateJWT(userInfo)
+            DefaultResponse.success = 1;
+            DefaultResponse.message = `Welocome Back <b>${user.first_name} ${user.last_name}</b>`;
+            DefaultResponse.data = userInfo;
+            DefaultResponse.settings = {
+                token: await CreateJWT(userInfo)
             }
 
         } else {
@@ -31,9 +32,9 @@ export async function POST(req: Request) {
 
     } catch (error) {
         console.log(error)
-        DefaultRespone.success = 0;
-        DefaultRespone.message = error.message || DefaultRespone.message;
+        DefaultResponse.success = 0;
+        DefaultResponse.message = error.message || DefaultResponse.message;
     }
 
-    return NextResponse.json(DefaultRespone.json());
+    return NextResponse.json(DefaultResponse.json());
 }

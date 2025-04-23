@@ -7,6 +7,8 @@ export const ROUTE = {
         LOGIN: "/api/auth/user/login",
     },
     USER: {
-        INFO: "/api/user/info"
+        INFO: "/api/user/info",
+        UPDATE_PROFILE: "/api/user/info",
+        CHANGE_PASSWORD: "/api/user/change-password"
     }
 }
