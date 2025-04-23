@@ -2,23 +2,49 @@ import axios from "axios"
 import { ENV } from "@env/envirolment";
 import { Clear, GetKey } from "../general/localstorage"
 import { APIRESPONSE } from "../interfaces";
-class Axios {
-    ax: any;
+class AxiosClass {
+    public readonly ax: any = axios.create({
+        baseURL: ENV.BASE_URL,
+        timeout: 10000,
+        headers: {
+        }
+    });
+
+    // Add spinner HTML to body
+    addSpinner = () => {
+        const spinner = document.createElement("div");
+        spinner.id = "loading-spinner";
+        spinner.innerHTML = `
+            <div class="spinner-overlay z-3">
+                <div class="spinner-container">
+                    <div class="circle circle1"></div>
+                    <div class="circle circle2"></div>
+                    <div class="circle circle3"></div>
+                    <div class="circle circle4"></div>
+                    <div class="circle circle5"></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(spinner);
+    };
+
+    // Remove spinner from body
+    removeSpinner = () => {
+        // const spinner = document.getElementById("loading-spinner");
+        // if (spinner) {
+        //     spinner.remove();
+        // }
+    };
 
     constructor() {
-        this.ax = axios.create({
-            baseURL: ENV.BASE_URL,
-            timeout: 10000,
-            headers: {
-                "Content-Type": "application/json",
-            }
-        });
+
         this.ax.interceptors.response.use(
             (response) => {
+                this.removeSpinner();
                 return response.data as APIRESPONSE
             },
-            
             (error) => {
+                this.removeSpinner();
                 if ([401].includes(error.status)) {
                     Clear();
                     window.location.href = "/auth/login"
@@ -26,17 +52,17 @@ class Axios {
             }
         )
         this.ax.interceptors.request.use((req) => {
-            try{
+            // this.addSpinner();
+            try {
                 const token = GetKey(ENV.TOKEN_KEY);
                 if (token) {
                     req.headers.Authorization = `Bearer ${token}`;
                 }
                 return req;
 
-            } catch (error){
+            } catch (error) {
                 console.log(error)
             }
-
         })
     }
 
@@ -47,6 +73,10 @@ class Axios {
     post(path: string, params: any = {}, headers: any = {}) {
         return this.ax.post(path, params, { headers })
     }
+
+    put(path: string, params: any = {}, headers: any = {}) {
+        return this.ax.put(path, params, { headers })
+    }
 }
 
-export default new Axios();
+export const Axios = new AxiosClass();

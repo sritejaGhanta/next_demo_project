@@ -3,23 +3,25 @@
 import Link from 'next/link'
 import { Formik } from 'formik'
 import './login.css'
-import Axios from "@utils/axios/service.ts"
-import { ROUTE } from '../../api/routes'
+import { Axios } from "@utils/axios/service.ts"
+import { ROUTE } from '../../../utils/axios/routes'
 import { SetKey } from '@utils/general/localstorage'
 import { ENV } from '@env/envirolment'
 import { sEmmitNotification } from '@lib/slice'
 import { useDispatch } from 'react-redux'
 import { sSetUser } from '../../../lib/slice';
 import { redirect, useRouter } from 'next/navigation'
+import { API_RESPONSE } from '@utils/general/interface'
 
 
 export default function Login() {
     const dispatch = useDispatch();
-     const router = useRouter();
+    const router = useRouter();
     const submire = (value) => {
-        Axios.post(ROUTE.AUTH.LOGIN, value).then((res) => {
+        Axios.post(ROUTE.AUTH.LOGIN, value).then((res: API_RESPONSE) => {
             if (res.settings.success) {
                 SetKey(ENV.TOKEN_KEY, res.settings.token);
+                console.log(res.data)
                 dispatch(sSetUser(res.data))
                 router.push('/dashbord');
             }
