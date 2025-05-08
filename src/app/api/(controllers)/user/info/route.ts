@@ -3,6 +3,7 @@ import { UserService } from "../../../services/user.service";
 import { getFile, uploadFile } from "../../../file.service";
 import { DefaultResponse } from "../../../general/general";
 import { USER } from "../../../general/interface";
+import { useSession } from "next-auth/react";
 
 
 
@@ -28,7 +29,7 @@ export function prepateUserInfo(user: any) {
  */
 export async function GET(req: NextRequest) {
     try {
-        const tokenData = JSON.parse(req.headers.get('token_data') as string)
+        const tokenData = JSON.parse(req.headers.get('token_data') as string);
         const user: USER = await UserService.getUser({ email: tokenData.email, id: tokenData.id });
         if (Object.keys(user).length) {
             DefaultResponse.success = 1;
@@ -79,6 +80,7 @@ export async function PUT(req) {
         DefaultResponse.data = prepateUserInfo(update)
 
     } catch (error) {
+        console.log(error)
         DefaultResponse.message = error?.message || error;
         DefaultResponse.data = {};
     }

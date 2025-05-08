@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ENV } from "../../envirolment/envirolment";
 import React from "react";
 import store from "../../lib/store";
+import { signOut, useSession } from "next-auth/react";
 
 export default function RootLayout({
   children,
@@ -18,6 +19,8 @@ export default function RootLayout({
 }>) {
   const route = useRouter();
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const ckPath: any = (path: string) => (pathname === path ? "active" : "");
 
   const [user, setUser] = useState(store.getState().user.payload || {})
@@ -26,10 +29,13 @@ export default function RootLayout({
     setUser(store.getState().user.payload)
   })
 
-  const logOut = useCallback(() => {
+  const logOut = () => {
     Clear();
-    route.push("/auth/login");
-  }, []);
+    if (Object.keys(session?.user || {}).length && status == "authenticated") {
+      signOut({redirect: true, callbackUrl: "/auth/login"})
+    }
+    router.push("/auth/login");
+  };
 
   const toggelBtn = useCallback(() => {
     document.body.classList.toggle("sb-sidenav-toggled");
@@ -107,9 +113,9 @@ export default function RootLayout({
                 </Link>
               </li>
               <li>
-                <Link 
-                className={"dropdown-item " + ckPath("/change-password")} 
-                href="change-password">
+                <Link
+                  className={"dropdown-item " + ckPath("/change-password")}
+                  href="change-password">
                   Change Password
                 </Link>
               </li>

@@ -30,6 +30,7 @@ class UserServiceClass {
         insertData.email = userInfo.email;
         insertData.password = userInfo.password;
         insertData.phone_number = userInfo.phone_number;
+        insertData.profile = userInfo.profile;
         insertData.gender = userInfo.gender == 'male' ? GENDER.MALE : GENDER.FEMALE;
         insertData.status = STATUS.ACTIVE;
 

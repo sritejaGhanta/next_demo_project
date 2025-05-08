@@ -7,31 +7,34 @@ import { BaseEntity } from "./base.entity";
 
 
 @Entity('user')
-export class User  extends BaseEntity{
-    @PrimaryGeneratedColumn({name: 'iUserId'})
-    id: number
+export class User extends BaseEntity {
+    @PrimaryGeneratedColumn({ name: 'iUserId' })
+    id: number;
 
-    @Column({ name: "vFirstName",length: 255 })
-    first_name: string
+    @Column({ name: "vFirstName", length: 255 })
+    first_name: string;
 
-    @Column({name: "vLastName", length: 255 })
-    last_name: string
+    @Column({ name: "vLastName", length: 255 })
+    last_name: string;
 
-    @Column({name: "vEmail", length: 255 })
-    email: string
+    @Column({ name: "vEmail", length: 255 })
+    email: string;
 
-    @Column({name: "vPassword", length: 255 })
-    password: string
+    @Column({ name: "vPassword", length: 255 })
+    password: string;
 
-    @Column({name: "vProfile", length: 255, nullable: true })
-    profile: string
+    @Column({ name: "vProfile", length: 255, nullable: true })
+    profile: string;
 
-    @Column({name: "vPhoneNumber", length: 255 })
-    phone_number: string
+    @Column({ name: "vPhoneNumber", length: 255 })
+    phone_number: string;
 
-    @Column({name: "eGender", type: 'enum', enum: GENDER })
-    gender: GENDER
+    @Column({ name: "eGender", type: 'enum', enum: GENDER })
+    gender: GENDER;
 
-    @Column({name: "eStatus", type: 'enum', enum: STATUS })
-    status: STATUS
+    @Column({ name: "eStatus", type: 'enum', enum: STATUS })
+    status: STATUS;
+
+    @Column({ name: "isLoign", type: "tinyint", default: () => 0 })
+    is_login: 0 | 1;
 }

@@ -1,12 +1,12 @@
-import nextAuth from "next-auth"
 import NextAuth, { AuthOptions } from "next-auth";
 import googleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-// import { Axios } from "@utils/axios/service";
 import axios from 'axios';
 import { API_RESPONSE } from "@utils/general/interface";
-import { ROUTE } from "../../../../../utils/axios/routes";
+import { CreateJWT } from "../../../general/jwt.service";
+import { UserService } from "../../../services/user.service"
+
 export const authOptions: AuthOptions = {
     providers: [
         googleProvider({
@@ -31,29 +31,27 @@ export const authOptions: AuthOptions = {
                 password: { label: "Password", type: "password", placeholder: "Password" }
             },
             async authorize(credentials, req) {
-                let userInfo: API_RESPONSE = await axios.post(`http://localhost:3000/api/custom-auth/user/login`, credentials).then(e => e.data);
-                console.log('------->', {
-                    route: `http://localhost:3000/api/custom-auth/user/login`,
-                    credentials,
-                    userInfo
-                })
-                try{
-                    localStorage.setItem(process.env.TOKEN, userInfo.settings.token)
+                try {
+                    const userInfo: API_RESPONSE = await axios.post(`http://192.168.20.131:3000/api/custom-auth/user/login`, credentials).then(e => e.data);
 
+                    if (userInfo.settings.success) {
+                        const user = {
+                            id: userInfo.data.id,
+                            name: userInfo.data.first_name + ' ' + userInfo.data.last_name,
+                            email: userInfo.data.email,
+                            image: userInfo.data.profile,
+                            ...userInfo.data,
+                        };
+                        user.access_token = await CreateJWT(user).then((e: any) => e.data)
+                        return user; // Return the user object
+                    }
+                    return null; // Or throw an error for better handling
                 } catch (error) {
-                    console.log(error)
+                    console.error("Login error:", error);
+                    throw new Error("Failed to login."); // Important: Throw an error on login failure
                 }
-                // const user = { id: "1", name: "J Smith", email: "jsmith@example.com" }
-                return userInfo.settings.success ? {
-                    id: userInfo.data.id,
-                    user: userInfo.data,
-                    token: userInfo.settings.token,
-                    session: userInfo.data
-                } : null;
-
             }
         })
-
     ],
     secret: process.env.NEXTAUTH_SECRET,
     session: {
@@ -61,23 +59,69 @@ export const authOptions: AuthOptions = {
     },
     callbacks: {
         async signIn({ user, account, profile, email, credentials }) {
-            console.log("signIn", { user, account, profile, email, credentials })
+            try {
+                if (account.provider === "google") {
+                    let checkUser = await UserService.getUser({
+                        email: user.email
+                    }) || {};
+                    if (!Object.keys(checkUser).length) {
+                        await UserService.insertUser({
+                            first_name: user.name.split(' ')[0],
+                            last_name: user.name.split(' ')[1],
+                            email: user.email,
+                            profile: user.image,
+                            password: "",
+                            phone_number: "",
+                            gender: "",
+                        });
+
+                        user.first_name = checkUser.first_name;
+                        user.last_name = checkUser.last_name;
+                        user.email = checkUser.email;
+                        user.profile = checkUser.profile;
+                        user.gender = checkUser.gender;
+                    } else {
+                        user.first_name = checkUser.first_name;
+                        user.last_name = checkUser.last_name;
+                        user.email = checkUser.email;
+                        user.profile = checkUser.profile;
+                        user.password = checkUser.password;
+                        user.phone_number = checkUser.phone_number;
+                        user.gender = checkUser.gender;
+                    }
+                    user.access_token = await CreateJWT(user).then((e: any) => e.data)
+
+                    return true
+                }
+            } catch (error) {
+                console.log(error)
+            }
             return true
         },
         async redirect({ url, baseUrl }) {
-            console.log("redirect", { url, baseUrl })
-            return baseUrl
+            return baseUrl;
         },
-        async session({ session, user, token }) {
-            console.log("session", { session, user, token })
-            return session
+        async session({ session, token }) {
+            try {
+                if (token?.user) {
+                    session.user = {
+                        ...session.user,
+                        ...token.user
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+
+            return session;
         },
         async jwt({ token, user, account, profile, isNewUser }) {
-            console.log("jwt", { token, user, account, profile, isNewUser })
-            return token
+            if (user) {
+                token.user = user; // Attach the *entire* user object to the token
+            }
+            return token;
         },
     },
-
 };
 
 const handler = NextAuth(authOptions);

@@ -2,58 +2,71 @@
 import { CSSProperties, useEffect, useState } from "react";
 import store from "../lib/store";
 import { usePathname, useRouter } from "next/navigation";
-import { Clear, GetKey } from "../utils/general/localstorage";
+import { Clear, GetKey, SetKey } from "../utils/general/localstorage";
 import { ENV } from "../envirolment/envirolment";
 import { Axios } from "@utils/axios/service.ts";
 import { ROUTE } from "../utils/axios/routes";
-import { decodeJwt } from "jose";
 import { useDispatch } from "react-redux";
 import { sSetUser } from "@lib/slice";
 import { API_RESPONSE } from "@utils/general/interface";
 import { ClockLoader } from "react-spinners";
-import { SessionProvider } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
+export  const appLogOut = () => {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  console.log(useSession())
+  Clear();
+  if (Object.keys(session?.user || {}).length && status == "authenticated") {
+    signOut();
+  }
+  router.push("/auth/login");
+};
 export function AppInitializer(prop) {
   useEffect(() => {
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
   }, []);
+  const { data: session, status } = useSession();
   const acceptPaths = ["/auth/login", "/auth/register", "/api/auth/signin"];
   const router = useRouter();
   const dispatch = useDispatch();
-  const logOut = () => {
-    Clear();
-    router.push("/auth/login");
-  };
-
   try {
-    if (GetKey(ENV.TOKEN_KEY)) {
-      let tokenData = decodeJwt(GetKey(ENV.TOKEN_KEY));
-      if (!tokenData.data || Date.now() / 1000 > tokenData.exp) {
-        throw "Invalid token.";
+    if (Object.keys(session?.user || {}).length && status == "authenticated") {
+      if (!GetKey(ENV.TOKEN_KEY) && session.user.access_token) {
+        SetKey(process.env.TOKEN_KEY, session.user.access_token)
+      } else if(!GetKey(ENV.TOKEN_KEY) && !session.user.access_token){
+
       }
+      dispatch(sSetUser(session.user))
 
       let path = window.location.pathname;
-      // const notAllowPath = ["/auth/login", "/auth/register"];
 
       if (acceptPaths.includes(path) || path == "/") {
         router.push("/dashbord");
       }
 
-      Axios.get(ROUTE.USER.INFO).then((res: API_RESPONSE) => {
-        if (!res.settings.success) {
-          throw "Api issue";
-        }
-        dispatch(sSetUser(res.data));
-      });
+      const storeData: any = store.getState();
+
+      if (!Object.keys(storeData?.user?.payload).length) {
+        Axios.get(ROUTE.USER.INFO).then((res: API_RESPONSE) => {
+          if (!res.settings.success) {
+            throw "Api issue";
+          }
+          dispatch(sSetUser(res.data));
+        });
+      }
+
     } else if (
       !GetKey(ENV.TOKEN_KEY) &&
       !acceptPaths.includes(window.location.pathname)
     ) {
       throw "Token not found.";
+    } else if(!(Object.keys(session?.user || {}).length && status == "authenticated") && GetKey(ENV.TOKEN_KEY)){
+      throw "Session is ended.!";
     }
   } catch (error) {
     console.log(error);
-    logOut();
+    appLogOut();
   }
 
   return (
@@ -153,14 +166,6 @@ export function Loder() {
           speedMultiplier={1}
         />
       </div>}
-      {/* {loder && ( */}
-      {/* //   <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000 }}>
-      //   <Spinner animation="border" role="status">
-      //     <span className="visually-hidden">Loading...</span>
-      //   </Spinner>
-      // </div> */}
-
-      {/* )} */}
     </>
   );
 }

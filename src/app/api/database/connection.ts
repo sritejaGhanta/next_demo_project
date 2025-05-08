@@ -13,7 +13,7 @@ const DB = new DataSource({
   database:  process.env.DB_NAME,
   entities: [User],
   synchronize: true,
-  logging: false,
+  logging: true,
   subscribers: [],
   migrations: [User],
 });
