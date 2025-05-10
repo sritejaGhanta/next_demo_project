@@ -17,7 +17,7 @@ export async function POST(req) {
             throw "User Not Found. Please try again"
         }
 
-        if (!CheckPassword(data.password, user.password)) {
+        if (user.password &&!CheckPassword(data.password, user.password)) {
             throw "Incorrect Old Password."
         }
 

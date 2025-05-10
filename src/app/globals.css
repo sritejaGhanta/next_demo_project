@@ -35,4 +35,11 @@
     position: absolute;
     z-index: 1000;
     background-color: #80808057;
+    
+}
+.sc-bXdtCk{
+       z-index: -1000;
+
+       margin-left: 35%;
+       margin-top: 15%;
 }

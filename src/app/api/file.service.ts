@@ -38,18 +38,19 @@ export function uploadFile(bufferData: any, folderName: string, fileName: string
  * @return string | null
  */
 export function getFile(fileName: string, folderName: string) {
-    let filePath: string | null;
+    let filePath: string | null = fileName;
     try {
         if (!fileName) {
             throw "No file"
         }
+        if (fileName.indexOf('http') < 0) {
+            const filePaht = `${ENV.FILE_UPLOAD_PATH}/${folderName}/${fileName}`;
+            console.log(filePaht);
 
-        const filePaht = `${ENV.FILE_UPLOAD_PATH}/${folderName}/${fileName}`;
-        console.log(filePaht);
-
-        filePath = existsSync(path.join(process.cwd(), `public/uploads/${folderName}/${fileName}`)) ? filePaht : null;
+            filePath = existsSync(path.join(process.cwd(), `public/uploads/${folderName}/${fileName}`)) ? filePaht : null;
+        }
     } catch (error) {
         filePath = null
     }
-    return filePath;
+    return filePath || fileName;
 }

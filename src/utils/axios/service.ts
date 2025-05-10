@@ -1,6 +1,5 @@
 import axios from "axios"
 import { ENV } from "@env/envirolment";
-import { Clear, GetKey } from "../general/localstorage"
 import { APIRESPONSE } from "../interfaces";
 class AxiosClass {
     public readonly ax: any = axios.create({
@@ -46,7 +45,7 @@ class AxiosClass {
             (error) => {
                 this.removeSpinner();
                 if ([401].includes(error.status)) {
-                    Clear();
+                    localStorage.clear();
                     window.location.href = "/auth/login"
                 }
             }
@@ -54,7 +53,7 @@ class AxiosClass {
         this.ax.interceptors.request.use((req) => {
             // this.addSpinner();
             try {
-                const token = GetKey(ENV.TOKEN_KEY);
+                const token = localStorage.getItem(ENV.TOKEN_KEY);
                 if (token) {
                     req.headers.Authorization = `Bearer ${token}`;
                 }

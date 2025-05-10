@@ -3,12 +3,12 @@ import { useCallback, useEffect, useState } from "react";
 import "../../../public/css/simple-datatables.css";
 import "../../../public/css/styles.css";
 import Link from "next/link";
-import { Clear, GetKey } from "../../utils/general/localstorage";
 import { usePathname, useRouter } from "next/navigation";
 import { ENV } from "../../envirolment/envirolment";
 import React from "react";
 import store from "../../lib/store";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 
 export default function RootLayout({
   children,
@@ -17,10 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
   prop: any;
 }>) {
-  const route = useRouter();
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  const router = useRouter();
   const ckPath: any = (path: string) => (pathname === path ? "active" : "");
 
   const [user, setUser] = useState(store.getState().user.payload || {})
@@ -30,11 +28,14 @@ export default function RootLayout({
   })
 
   const logOut = () => {
-    Clear();
+    localStorage.clear();
     if (Object.keys(session?.user || {}).length && status == "authenticated") {
-      signOut({redirect: true, callbackUrl: "/auth/login"})
+      signOut().then(e => {
+        window.location.href = "/auth/login";
+      })
+    } else {
+      window.location.href = "/auth/login";
     }
-    router.push("/auth/login");
   };
 
   const toggelBtn = useCallback(() => {
@@ -51,7 +52,12 @@ export default function RootLayout({
     }, 100);
   }, []);
 
-  if (!GetKey(ENV.TOKEN_KEY)) {
+  // check Token and session
+  if (
+    !localStorage.getItem(ENV.TOKEN_KEY) &&
+    !Object.keys(session?.user || {}).length &&
+    status !== "authenticated"
+  ) {
     logOut();
   }
 
@@ -91,12 +97,11 @@ export default function RootLayout({
                 {user.first_name} {user.last_name}
               </b>
               <i>
-                <img
+                <Image 
+                  src={user.profile || "https://img.icons8.com/bubbles/150/000000/user.png"}
+                  alt=" {user.first_name} {user.last_name}"
                   width={25}
                   height={25}
-                  src={user.profile || "https://img.icons8.com/bubbles/150/000000/user.png"}
-                  className="img-radius"
-                  alt="User-Profile-Image"
                 />
               </i>
             </Link>

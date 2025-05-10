@@ -15,7 +15,6 @@ export async function POST(req: Request) {
         const data = await req.json();
         const condition = { email: data.email };
         const user: User = await UserService.getUser(condition) as User;
-        console.log(CheckPassword(data.password, user.password), data.password, user.password)
         if (user.email && CheckPassword(data.password, user.password)) {
             const userInfo = prepateUserInfo(user)
 

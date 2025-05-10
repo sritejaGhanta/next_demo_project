@@ -1,5 +1,6 @@
-"use client"
-import { Field, Formik, useField } from "formik";
+'use client'
+
+import { Field, Formik } from "formik";
 import "./profile.css";
 import store from "../../../lib/store"
 import React, { useCallback, useEffect, useState } from "react";
@@ -8,12 +9,15 @@ import { ROUTE } from "../../../utils/axios/routes";
 import { API_RESPONSE } from "@utils/general/interface";
 import { useDispatch } from "react-redux";
 import { sSetUser } from "@lib/slice";
-import { sEmmitNotification } from "../../../lib/slice";
+import { toast } from "react-toastify";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 export default function Profile() {
 	const dispatch = useDispatch()
 	const [profileImage, setProfile] = useState()
 	const [previewImage, setPreviewImage] = useState(null);
+	const { data: session, status, update: updateSession } = useSession();
 
 	const [user, setUser] = useState({
 		first_name: "",
@@ -34,17 +38,39 @@ export default function Profile() {
 	}, [user])
 
 	const subite = useCallback((value) => {
-		Axios.put(
-			ROUTE.USER.UPDATE_PROFILE,
-			value,
+		const updateUserProfile = new Promise((resolve, reject) => {
+			Axios.put(
+				ROUTE.USER.UPDATE_PROFILE,
+				value,
+				{
+					headers: { 'Content-Type': 'multipart/form-data' }
+				}
+			).then((response: API_RESPONSE) => {
+				if (response.settings.success) {
+					setUser(response.data)
+					dispatch(sSetUser(response.data))
+					updateSession(response.data);
+					setTimeout(() => {
+						resolve(1)
+					}, 3000)
+				} else {
+					toast.error(response.settings.message)
+					reject(0)
+				}
+
+			})
+		});
+		toast.promise(
+			updateUserProfile,
 			{
-				headers: { 'Content-Type': 'multipart/form-data' }
+				pending: 'Please wait.',
+				success: 'Profile updated successfully.👌',
+				error: 'Profile updated failed 🤯, Please try again.'
 			}
-		).then((response: API_RESPONSE) => {
-			dispatch(sSetUser(response.data))
-			dispatch(sEmmitNotification(response.settings));
-			setUser(response.data)
-		})
+		)
+
+
+
 	}, [])
 
 	return (
@@ -58,13 +84,21 @@ export default function Profile() {
 									<div className="col-sm-12 bg-c-lite-green user-profile">
 										<div className="card-block text-center text-white">
 											<div className="m-b-25">
-												<img
+												{/* <img
 													width={150}
 													height={150}
 													onClick={() => document.getElementById('profile_input').click()}
 													src={previewImage}
 													className="img-radius"
 													alt="User-Profile-Image"
+												/> */}
+												<Image
+													width={150}
+													height={150}
+													onClick={() => document.getElementById('profile_input').click()}
+													src={previewImage || "https://img.icons8.com/bubbles/150/000000/user.png"}
+													className="img-radius"
+													alt="{user.first_name} {user.last_name"
 												/>
 											</div>
 											<div>
@@ -226,7 +260,7 @@ export default function Profile() {
 																<h6 className="mb-2 pb-1">Gender: </h6>
 																<div className="form-check form-check-inline">
 																	<input
-																		onChange={() => values.gender = "Male"}
+																		onChange={() => setFieldValue("gender", "Male")}
 																		className="form-check-input"
 																		type="radio"
 																		name="gender"
@@ -237,7 +271,7 @@ export default function Profile() {
 																</div>
 																<div className="form-check form-check-inline">
 																	<input
-																		onChange={() => values.gender = "Female"}
+																		onChange={() => setFieldValue("gender", "Female")}
 																		className="form-check-input"
 																		type="radio"
 																		name="gender"
@@ -248,7 +282,7 @@ export default function Profile() {
 																</div>
 																<div className="form-check form-check-inline">
 																	<input
-																		onChange={() => values.gender = "Other"}
+																		onChange={() => setFieldValue("gender", "Other")}
 																		className="form-check-input"
 																		type="radio"
 																		name="gender"
@@ -257,7 +291,7 @@ export default function Profile() {
 
 																	/>
 																	<label className="form-check-label" htmlFor="otherGender">Other</label>
-																</div>{ values.gender}
+																</div>
 
 															</div>
 

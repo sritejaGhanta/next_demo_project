@@ -1,7 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: [
+      'lh3.googleusercontent.com', 
+      'img.icons8.com', 
+      'avatars.githubusercontent.com',
+      'localhost'
+
+    ],
+  },
+
 };
 
 export default nextConfig;

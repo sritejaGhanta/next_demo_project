@@ -60,12 +60,13 @@ export const authOptions: AuthOptions = {
     callbacks: {
         async signIn({ user, account, profile, email, credentials }) {
             try {
-                if (account.provider === "google") {
-                    let checkUser = await UserService.getUser({
+                let checkUser: any = {}
+                if (account.provider === "google" || account.provider === "github") {
+                    checkUser = await UserService.getUser({
                         email: user.email
                     }) || {};
                     if (!Object.keys(checkUser).length) {
-                        await UserService.insertUser({
+                        let info = await UserService.insertUser({
                             first_name: user.name.split(' ')[0],
                             last_name: user.name.split(' ')[1],
                             email: user.email,
@@ -73,6 +74,7 @@ export const authOptions: AuthOptions = {
                             password: "",
                             phone_number: "",
                             gender: "",
+                            is_login: 1
                         });
 
                         user.first_name = checkUser.first_name;
@@ -80,7 +82,10 @@ export const authOptions: AuthOptions = {
                         user.email = checkUser.email;
                         user.profile = checkUser.profile;
                         user.gender = checkUser.gender;
+                        user.id = info.id;
+                        user.access_token = await CreateJWT(user)
                     } else {
+                        user.id = checkUser.id
                         user.first_name = checkUser.first_name;
                         user.last_name = checkUser.last_name;
                         user.email = checkUser.email;
@@ -88,10 +93,9 @@ export const authOptions: AuthOptions = {
                         user.password = checkUser.password;
                         user.phone_number = checkUser.phone_number;
                         user.gender = checkUser.gender;
-                    }
-                    user.access_token = await CreateJWT(user).then((e: any) => e.data)
+                        user.access_token = await CreateJWT(user)
 
-                    return true
+                    }
                 }
             } catch (error) {
                 console.log(error)
@@ -108,6 +112,7 @@ export const authOptions: AuthOptions = {
                         ...session.user,
                         ...token.user
                     }
+                    session.expires = new Date(Date.now() + 60 * 60 * 1000).toJSON()
                 }
             } catch (error) {
                 console.log(error);

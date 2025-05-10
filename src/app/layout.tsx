@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "./StoreProvider";
-import { AppInitializer, Notification, SessionProvider } from "./layout.imports";
+import { AppInitializer, Loder, Notification, SessionProvider } from "./layout.imports";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./api/(controllers)/auth/[...nextauth]/route"; // Removed this import
-
+import { Bounce, ToastContainer, toast } from 'react-toastify';
 // Configure fonts
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +38,19 @@ export default async function RootLayout({
         <SessionProvider session={session}>
           <StoreProvider>
             <AppInitializer />
-            <Notification />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick={false}
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+              transition={Bounce}
+            />
             {children}
           </StoreProvider>
         </SessionProvider>

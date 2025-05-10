@@ -1,142 +1,82 @@
-"use client";
-import { CSSProperties, useEffect, useState } from "react";
-import store from "../lib/store";
+'use client'
+
+import { CSSProperties, memo, useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Clear, GetKey, SetKey } from "../utils/general/localstorage";
 import { ENV } from "../envirolment/envirolment";
 import { Axios } from "@utils/axios/service.ts";
 import { ROUTE } from "../utils/axios/routes";
 import { useDispatch } from "react-redux";
 import { sSetUser } from "@lib/slice";
 import { API_RESPONSE } from "@utils/general/interface";
-import { ClockLoader } from "react-spinners";
+import { Circles } from "react-loader-spinner";
 import { signOut, useSession } from "next-auth/react";
+import React from "react";
+let checkIdenty = 0;
 
-export  const appLogOut = () => {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  console.log(useSession())
-  Clear();
-  if (Object.keys(session?.user || {}).length && status == "authenticated") {
-    signOut();
-  }
-  router.push("/auth/login");
+export const appLogOut = (session) => {
+  localStorage.clear();
+  Object.keys(session?.user || {}).length && signOut();
+  window.location.href = "/auth/login";
 };
-export function AppInitializer(prop) {
+
+export const AppInitializer = memo((prop) => {
   useEffect(() => {
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
   }, []);
-  const { data: session, status } = useSession();
-  const acceptPaths = ["/auth/login", "/auth/register", "/api/auth/signin"];
-  const router = useRouter();
+  const { data: session, status, update } = useSession();
+  const notAcceptPaths = ["/auth/login", "/auth/register", "/api/auth/signin"];
   const dispatch = useDispatch();
+  let path = window.location.pathname;
+
   try {
-    if (Object.keys(session?.user || {}).length && status == "authenticated") {
-      if (!GetKey(ENV.TOKEN_KEY) && session.user.access_token) {
-        SetKey(process.env.TOKEN_KEY, session.user.access_token)
-      } else if(!GetKey(ENV.TOKEN_KEY) && !session.user.access_token){
+    if (!localStorage.getItem(ENV.TOKEN_KEY) && session?.user?.access_token && status == "authenticated") {
+      localStorage.setItem(process.env.TOKEN_KEY || "NEXT", session?.user?.access_token)
+    }
 
-      }
-      dispatch(sSetUser(session.user))
-
-      let path = window.location.pathname;
-
-      if (acceptPaths.includes(path) || path == "/") {
-        router.push("/dashbord");
-      }
-
-      const storeData: any = store.getState();
-
-      if (!Object.keys(storeData?.user?.payload).length) {
+    if (localStorage.getItem(ENV.TOKEN_KEY)) {
+      if (checkIdenty == 0) {
         Axios.get(ROUTE.USER.INFO).then((res: API_RESPONSE) => {
-          if (!res.settings.success) {
-            throw "Api issue";
+          if (!res?.settings?.success) {
+            throw "Session is ended.!";
+          } else {
+            dispatch(sSetUser(res?.data));
+            if (res?.settings?.success && notAcceptPaths.includes(path) || path == "/") {
+              // router.push("/dashbord");
+              window.location.href = "/dashbord";
+            }
           }
-          dispatch(sSetUser(res.data));
-        });
+        })
+        checkIdenty = 1
       }
-
-    } else if (
-      !GetKey(ENV.TOKEN_KEY) &&
-      !acceptPaths.includes(window.location.pathname)
-    ) {
-      throw "Token not found.";
-    } else if(!(Object.keys(session?.user || {}).length && status == "authenticated") && GetKey(ENV.TOKEN_KEY)){
-      throw "Session is ended.!";
+    } else if (!notAcceptPaths.includes(path) || path == "/") {
+      // window.location.href = "/dashbord";
+      throw "sorry"
     }
   } catch (error) {
-    console.log(error);
-    appLogOut();
+    alert(error)
+    session?.user && update({ access_token: null })
+    appLogOut(session);
   }
 
   return (
     <>
-      <Notification />
-      <Loder />
+      {/* <Loder /> */}
     </>
   );
-}
+})
 
-export function Notification() {
-  const [notify, setNotify] = useState({
-    success: 0,
-    message: "",
-  });
-  const [show, setShow] = useState(false);
-  store.subscribe(() => {
-    let state: any = store.getState();
-    setNotify(state.notify);
-  });
-
-  useEffect(() => {
-    setShow(true);
-    setTimeout(() => {
-      setShow(false);
-    }, 5000);
-  }, [notify]);
-
-
-  return (
-    <>
-      {show && notify.message && (
-        <div id="notification-pop-up" onClick={() => setShow(false)}>
-          {notify.success ? (
-            <div
-              className="alert alert-success alert-dismissible fade show d-flex justify-content-between align-items-center p-2"
-              dangerouslySetInnerHTML={{ __html: notify.message }}
-            >
-            </div>
-          ) : (
-            <div
-              className="alert alert-danger alert-dismissible fade show d-flex justify-content-between align-items-center p-2"
-              dangerouslySetInnerHTML={{ __html: notify.message }}
-            >
-            </div>
-          )}
-        </div>
-      )}
-    </>
-  );
-}
-
-export function Loder() {
+export const Loder = memo((prop: any) => {
+  const loderRef = useRef(prop.ref?.current)
   const [loading, setLoader] = useState(false);
   const path = usePathname();
+
+  // path change time loder is enable
   useEffect(() => {
     setLoader(true);
     setTimeout(() => {
       setLoader(false);
     }, 500)
   }, [path]);
-  const override: CSSProperties = {
-    display: "block",
-    margin: "0 auto",
-    borderColor: "red",
-    position: "fixed",
-    top: "20%",
-    left: "40%",
-    zIndex: 1000,
-  };
 
   Axios.ax.interceptors.response.use(
     (response) => {
@@ -157,17 +97,19 @@ export function Loder() {
 
   return (
     <>
-      {loading && <div className="loader">
-        <ClockLoader
-          color="#077bf3"
-          cssOverride={override}
-          loading={loading}
-          size={500}
-          speedMultiplier={1}
+      {(loading) && <div className="loader">
+        <Circles
+          height="500"
+          width="500"
+          color="#4fa94d"
+          ariaLabel="circles-loading"
+          wrapperStyle={{}}
+          wrapperClass=""
+          visible={loading}
         />
       </div>}
     </>
   );
-}
+})
 
 export { SessionProvider } from "next-auth/react";

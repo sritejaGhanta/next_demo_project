@@ -12,25 +12,21 @@ export async function ApiMiddleware(
   const authorizationToken = req.headers.get('authorization')?.split(' ')?.[1];
   const token: string = (authorizationToken && authorizationToken !== 'null') ? authorizationToken : null;
   const accessUrls: string[] = [
-    "/api/custom-auth/user/register",
-    "/api/custom-auth/user/login",
-    "/api/auth/session",
-    "/api/auth/providers",
-    "/api/auth/callback/credentials",
-    "/api/auth/csrf",
-    "/api/auth/signout",
-    "/api/auth/signin/google",
-    "/api/auth/callback/google",
-    "/api/auth/error",
-    "/api/auth"
+    "/api/custom-auth",
+    "/api/auth",
   ];
+
   let tokenData: any = {}
-// console.log(!token && !accessUrls.includes(req.nextUrl.pathname), req.nextUrl.pathname)
-//   if (!token && !accessUrls.includes(req.nextUrl.pathname)) {
-//     DefaultResponse.success = -1;
-//     DefaultResponse.message = "Unauthorized";
-//     return NextResponse.json(DefaultResponse.json(), { status: 401 })
-//   }
+  if (
+      !token && 
+      token !== "null" &&
+      !accessUrls.some(e => req.nextUrl.pathname.indexOf(e) >= 0)
+    ) {
+    DefaultResponse.success = -1;
+    DefaultResponse.message = "Unauthorized";
+    return NextResponse.json(DefaultResponse.json(), { status: 401 })
+  }
+
   if (token) {
     tokenData = await VerifyJWT(token);
     if (!tokenData.success) {
@@ -43,7 +39,7 @@ export async function ApiMiddleware(
 
   // Create a response and clone the request while modifying headers
   const response = NextResponse.next();
-  if(tokenData?.data?.data){
+  if (tokenData?.data?.data) {
     response.headers.set('token_data', JSON.stringify(tokenData.data.data))
   }
 
