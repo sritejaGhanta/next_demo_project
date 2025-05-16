@@ -6,8 +6,8 @@ const nextConfig: NextConfig = {
       'lh3.googleusercontent.com', 
       'img.icons8.com', 
       'avatars.githubusercontent.com',
-      'localhost'
-
+      'localhost',
+      '192.168.20.131'
     ],
   },
 

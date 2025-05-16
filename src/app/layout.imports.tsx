@@ -50,17 +50,16 @@ export const AppInitializer = memo((prop) => {
       }
     } else if (!notAcceptPaths.includes(path) || path == "/") {
       // window.location.href = "/dashbord";
-      throw "sorry"
+      throw "Access Denied";
     }
   } catch (error) {
-    alert(error)
     session?.user && update({ access_token: null })
     appLogOut(session);
   }
 
   return (
     <>
-      {/* <Loder /> */}
+      {/* <Loder /> TO DO loader issue fix*/}
     </>
   );
 })

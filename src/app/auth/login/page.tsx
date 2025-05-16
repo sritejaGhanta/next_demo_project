@@ -6,13 +6,11 @@ import './login.css'
 import { Axios } from "@utils/axios/service.ts"
 import { ROUTE } from '../../../utils/axios/routes'
 import { ENV } from '@env/envirolment'
-import { sEmmitNotification } from '@lib/slice'
 import { useDispatch } from 'react-redux'
 import { sSetUser } from '../../../lib/slice';
 import { redirect, useRouter } from 'next/navigation'
 import { API_RESPONSE } from '@utils/general/interface'
 import { signIn, } from 'next-auth/react'
-import Google from 'next-auth/providers/google'
 import { toast } from 'react-toastify'
 
 
@@ -20,17 +18,17 @@ export default function Login() {
     const dispatch = useDispatch();
     const router = useRouter();
     const submire = (value) => {
-        let loginPromise = new Promise((res, rej) => {
+        let loginPromise = new Promise((resolve, reject) => {
             Axios.post(ROUTE.AUTH.LOGIN, value).then((res: API_RESPONSE) => {
                 if (res.settings.success) {
+                    resolve(true)
                     localStorage.setItem(ENV.TOKEN_KEY, res.settings.token);
                     // signIn('credentials', value);
                     dispatch(sSetUser(res.data))
                     router.push('/dashbord');
                     toast.success(res.settings.message)
-                    res()
                 } else {
-                    res()
+                    reject()
                 }
             })
         })

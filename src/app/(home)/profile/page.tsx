@@ -14,10 +14,10 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 
 export default function Profile() {
-	const dispatch = useDispatch()
-	const [profileImage, setProfile] = useState()
+	const dispatch = useDispatch();
+	const [profileImage, setProfile] = useState();
 	const [previewImage, setPreviewImage] = useState(null);
-	const { data: session, status, update: updateSession } = useSession();
+	const { data: session, update: updateSession } = useSession();
 
 	const [user, setUser] = useState({
 		first_name: "",
@@ -50,16 +50,14 @@ export default function Profile() {
 					setUser(response.data)
 					dispatch(sSetUser(response.data))
 					updateSession(response.data);
-					setTimeout(() => {
-						resolve(1)
-					}, 3000)
+					resolve(1)
 				} else {
 					toast.error(response.settings.message)
 					reject(0)
 				}
-
 			})
 		});
+
 		toast.promise(
 			updateUserProfile,
 			{
@@ -68,8 +66,6 @@ export default function Profile() {
 				error: 'Profile updated failed 🤯, Please try again.'
 			}
 		)
-
-
 
 	}, [])
 

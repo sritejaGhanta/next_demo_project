@@ -9,6 +9,8 @@ import React from "react";
 import store from "../../lib/store";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
+import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default function RootLayout({
   children,

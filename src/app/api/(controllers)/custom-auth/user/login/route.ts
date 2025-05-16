@@ -19,7 +19,7 @@ export async function POST(req: Request) {
             const userInfo = prepateUserInfo(user)
 
             DefaultResponse.success = 1;
-            DefaultResponse.message = `Welocome Back <b>${user.first_name} ${user.last_name}</b>`;
+            DefaultResponse.message = `Welocome Back ${user.first_name} ${user.last_name}`;
             DefaultResponse.data = userInfo;
             DefaultResponse.settings = {
                 token: await CreateJWT(userInfo)

@@ -10,5 +10,13 @@ export const ROUTE = {
         INFO: "/api/user/info",
         UPDATE_PROFILE: "/api/user/info",
         CHANGE_PASSWORD: "/api/user/change-password"
+    },
+    CONTACTS: {
+        DETAILS : "/api/contacts/details",
+        LIST : "/api/contacts/list",
+        CREATE: "/api/contacts/save",
+        UPDATE: "/api/contacts/save",
+        DELETE: "/api/contacts/delte",
+        STATUS: "/api/contacts/status"
     }
 }

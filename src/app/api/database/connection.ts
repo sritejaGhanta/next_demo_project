@@ -2,6 +2,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm"
 import { User } from "./scema/user.entity";
+import { ContatsEntity } from "./scema/contacts.entity";
 
 
 const DB = new DataSource({
@@ -11,9 +12,9 @@ const DB = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database:  process.env.DB_NAME,
-  entities: [User],
+  entities: [User, ContatsEntity],
   synchronize: true,
-  logging: false,
+  logging: false ,
   subscribers: [],
   migrations: [User],
 });

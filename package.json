@@ -11,11 +11,16 @@
   "dependencies": {
     "@clerk/nextjs": "^6.18.0",
     "@reduxjs/toolkit": "^2.6.0",
+    "@tanstack/react-table": "^8.21.3",
+    "ag-grid-community": "^33.3.0",
+    "ag-grid-react": "^33.3.0",
     "axios": "^1.8.1",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "crypto-js": "^4.2.0",
+    "date-fns": "^4.1.0",
     "formik": "^2.4.6",
+    "joi": "^17.13.3",
     "jose": "^6.0.10",
     "mysql": "^2.18.1",
     "mysql2": "^3.14.0",
@@ -27,10 +32,12 @@
     "react-hook-form": "^7.54.2",
     "react-loader-spinner": "^6.1.6",
     "react-redux": "^9.2.0",
+    "react-select": "^5.10.1",
     "react-spinners": "^0.17.0",
     "react-toastify": "^11.0.5",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.21"
+    "typeorm": "^0.3.21",
+    "use-debounce": "^10.0.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
