@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import { memo, StrictMode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { API_RESPONSE, COMMON_LIST_COMPONENT_INTERFACE } from "../utils/general/interface";
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, CheckboxEditorModule, ClientSideRowModelModule, ColDef, DateEditorModule, DateFilterModule, IDateFilterParams, ModuleRegistry, NumberEditorModule, NumberFilterModule, provideGlobalGridOptions, RowSelectionModule, RowSelectionOptions, TextEditorModule, TextFilterModule, themeAlpine, themeBalham, themeQuartz, ValidationModule } from 'ag-grid-community';
@@ -9,6 +9,8 @@ import { toast } from "react-toastify";
 import { format } from "date-fns";
 import Select from 'react-select'
 import { useDebouncedCallback } from 'use-debounce';
+import ReactPaginate from 'react-paginate';
+import Link from 'next/link';
 
 
 ModuleRegistry.registerModules([
@@ -28,40 +30,21 @@ provideGlobalGridOptions({
     theme: "legacy",
 });
 
-let Grid:any;
 
 function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
     const myTheme = themeAlpine || themeBalham;
     const [rowData, setRowData] = useState([]);
     const [status, setStatus] = useState(null);
     const [keyword, setKeyword] = useState(null);
-    const [grid, setGrid] = useState(null)
-
-    const callApi = useCallback(async () => {
-        const filters: any = {};
-        if (status) {
-            filters.status = status;
-        }
-
-        if (keyword) {
-            filters.keyword = keyword
-        }
-
-        Axios.post(prop.api_url.list, filters).then((res: API_RESPONSE) => {
-            if (!res?.settings?.success) {
-                toast.error(res?.settings?.message || "Something went wrong please try again.");
-            } else {
-                toast.success(res.settings.message);
-                setRowData(res.data);
-            }
-        })
-    }, [status, keyword]);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(5);
+    const [sort, setSort] = useState(null)
+    const [grid, setGrid] = useState(null);
+    const [pagination, setPagination] = useState<any>({})
+    const Grid = useMemo(() => grid?.api, [grid])
 
 
-    // Grid is Ready
-    const onGridReady = (grid) => {
-        setGrid(grid)
-    }
+    const changeDetectionsArr = [status, keyword, page, limit, sort];
 
     // select multiple rows
     const rowSelection: RowSelectionOptions = useMemo(() => {
@@ -70,6 +53,7 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
         };
     }, []);
 
+    // select multiple rows relaed code
     const cellSelection = useMemo(() => {
         return {
             enableHeaderHighlight: true,
@@ -80,72 +64,139 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
     const keyDebouncer = useDebouncedCallback(
         // function
         (value) => {
+            setPage(1);
             setKeyword(value);
         },
         // delay in 1s
         1000
     );
-    const clearKeyword = () => {
+
+    // Clear Search keyword
+    const clearKeyword = useCallback(() => {
+        // @ts-ignore
         document.getElementById('searchKeyowrd').value = null;
         setKeyword(null)
-    }
+    }, [])
 
-    // Change Status
-    const changeStatus = async (status) => {
-        const selectedRows = Grid?.getSelectedRows() || [];
-        const ids = selectedRows.map(e => e.id);
-        const statusPromise = new Promise((res, rej) => {
-            Axios.post(prop.api_url.status, { status, ids }).then((response: API_RESPONSE) => {
-                if (response.settings.success) {
-                    res(1);
-                    toast.success(response.settings.message);
-                } else {
-                    rej(statusPromise)
+    // Status Change
+    const changeStatus = useCallback((e) => {
+        setPage(1);
+        setStatus(e ? e.value : null);
+    }, [])
+
+    // Limit change
+    const changeLimit = useCallback((e) => {
+        setPage(1);
+        setLimit(e ? e.value : null);
+    }, []);
+
+    // Page Change
+    const handlePageClick = useCallback(async (page: any) => {
+        setPage(page.selected + 1);
+    }, []);
+
+    // Sort changes
+    const sortChange = useCallback((sortField) => {
+        console.log(sortField)
+        if (prop.actions.sort) {
+            let sortDir = []
+            sortField.columns.forEach(field => {
+                if (field.colId && field.sort) {
+                    sortDir.push({
+                        prop: field.colId,
+                        dir: field.sort
+                    })
                 }
             })
+            setSort(sortDir)
+        }
+
+    }, []);
+
+    // Update Row(s) Status
+    const updateStatus = useCallback(async (status) => {
+        const selectedRows = Grid?.getSelectedRows() || [];
+        const ids = selectedRows.map(e => e.id);
+        if (ids.length) {
+            const statusPromise = new Promise((res, rej) => {
+                Axios.post(prop.api_url.status, { status, ids }).then((response: API_RESPONSE) => {
+                    if (response.settings.success) {
+                        res(1);
+                        toast.success(response.settings.message);
+                        callApi();
+                    } else {
+                        rej(statusPromise)
+                    }
+                })
+            })
+            toast.promise(statusPromise, {
+                error: "Something went wrong please try again",
+                pending: "Please wait..."
+            })
+        } else {
+            toast.error("Please select atleat one contact.")
+        }
+    }, []);
+
+    // Call List Api
+    const callApi = useCallback(async () => {
+        const filters: any = {
+            page: page,
+            limit: limit
+        };
+
+        if (status) {
+            filters.status = status;
+        }
+
+        if (keyword) {
+            filters.keyword = keyword;
+        }
+
+        if (sort) {
+            filters.sort = sort;
+        }
+
+        Axios.post(prop.api_url.list, filters).then((res: API_RESPONSE) => {
+            if (!res?.settings?.success) {
+                toast.error(res?.settings?.message || "Something went wrong please try again.");
+                setRowData([]);
+            } else {
+                toast.success(res.settings.message);
+                setRowData(res.data);
+                setPagination(res.settings);
+            }
         })
-        toast.promise(statusPromise, {
-            error: "Something went wrong please try again",
-            pending: "Please wait..."
-        })
-    }
+    }, changeDetectionsArr);
 
-
-
+    // Detect Effects and call List Api
     useEffect(() => {
         callApi()
-    }, [status, keyword]);
+    }, changeDetectionsArr);
 
     return <>
         <div className="container-fluid py-4"> {/* Use container-fluid for full width */}
             <div className="card"> {/* Example: Card structure around the table */}
                 <div className="card-header d-flex justify-content-between align-items-center">
-                    <h4 className="mb-0">Contacts</h4>
-                    <div className="d-flex align-items-center">
+                    <h4 className="mb-0" title={prop.description}>{prop.name}</h4>
+                    {/* full screen propose */}
+                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <i className="bi bi-list-task"></i>
+                    </button>
+                    <div className="common-action-btn">
                         {/* Status drop down filter */}
                         {(prop?.actions?.status) &&
                             <Select
                                 className="basic-single w-75 me-3"
                                 classNamePrefix="select"
                                 isClearable={true}
-                                onChange={(e) => setStatus(e.value)}
+                                onChange={changeStatus}
                                 isDisabled={false}
                                 isLoading={false}
                                 isSearchable={true}
                                 name="color"
                                 defaultValue={null}
-                                options={[
-                                    { value: 'active', label: 'Active' },
-                                    { value: 'inactive', label: 'Inactive' },
-                                ]} />
-                            // <select
-                            //     className="form-select w-50 me-2"
-                            //     aria-label="Default select example"
-                            // >
-                            //     <option value="active">Active</option>
-                            //     <option value="active">Active</option>
-                            //     <option value="inactive">Inactive</option>
-                            // </select>
+                                options={prop.actions_options?.filter_status_options || filterStatusOptions} />
                         }
 
                         {/* Search Bar and Buttons (Simplified) */}
@@ -192,13 +243,13 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
                             <>
                                 <button
                                     className="btn btn-outline-secondary me-2"
-                                    onClick={() => changeStatus('Active')}
+                                    onClick={() => updateStatus('Active')}
                                 >
                                     <i className="bi bi-lock"></i>
                                 </button>
                                 <button
                                     className="btn btn-outline-secondary me-2"
-                                    onClick={() => changeStatus('Inactive')}
+                                    onClick={() => updateStatus('Inactive')}
                                 >
                                     <i className="bi bi-unlock"></i>
                                 </button>
@@ -206,11 +257,12 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
                         }
 
                         {/* Add Button  */}
-                        {(prop.actions.add) &&
-                            <button className="btn btn-primary"><i className="bi bi-plus"></i></button>
+                        {(prop.actions.add && prop.add_update_actions.add.redirect && prop.add_update_actions.add.redirect_url) &&
+                            <Link href={prop.add_update_actions.add.redirect_url} className="btn btn-primary"><i className="bi bi-plus"></i></Link>
                         }
                     </div>
                 </div>
+
                 <div className="card-body p-0"> {/* p-0 to remove padding if table fills card body */}
                     <div className=" table-responsive h-100" style={{ width: "100%", height: "500px" }}>{/* Make table responsive on smaller screens */}
                         <AgGridReact
@@ -218,23 +270,54 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
                             className="common-ag-grid"
                             columnDefs={prop.colDefs}
                             rowData={rowData}
-                            defaultColDef={prop.defaultColDef}
+                            defaultColDef={prop.default_col_def}
                             rowSelection={rowSelection}
                             cellSelection={cellSelection}
-                            onGridReady={(e) => Grid = e.api}
+                            onGridReady={(e) => setGrid(e)}
+                            onSortChanged={sortChange}
                         >
                         </AgGridReact>
                     </div>
                 </div>
+
                 {/* Pagination Footer (Simplified) */}
                 <div className="card-footer d-flex justify-content-between align-items-center">
-                    <span>Showing 1 - 9 of 9</span>
-                    <nav aria-label="Page navigation example">
-                        <ul className="pagination pagination-sm mb-0">
-                            <li className="page-item disabled"><a className="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
-                            <li className="page-item active"><a className="page-link" href="#">1</a></li>
-                            <li className="page-item disabled"><a className="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
-                        </ul>
+                    <span>
+                        Showing &nbsp;
+                        {(pagination.limit * (pagination.page - 1)) + 1} - &nbsp;
+                        {((pagination.limit * (pagination.page)) <= pagination.count) ? (pagination.limit * (pagination.page)) : pagination.count - (pagination.limit * (pagination.page - 1)) + (pagination.limit * (pagination.page - 1))} of {pagination.count}</span>
+                    <nav aria-label="Page navigation" className='pagination-nav'>
+                        <Select
+                            className="common-limit-select w-50 me-3"
+                            classNamePrefix="select"
+                            onChange={changeLimit}
+                            isDisabled={false}
+                            isLoading={false}
+                            isSearchable={false}
+                            name="color"
+                            defaultValue={{ value: '5', label: '5' }}
+                            options={prop.actions_options.pagination_options || paginationsOptions} />
+                        <ReactPaginate
+                            nextLabel=">"
+                            onPageChange={handlePageClick}
+                            pageRangeDisplayed={3}
+                            marginPagesDisplayed={2}
+                            pageCount={pagination.total_pages}
+                            previousLabel="<"
+                            pageClassName="page-item"
+                            pageLinkClassName="page-link"
+                            previousClassName="page-item"
+                            previousLinkClassName="page-link"
+                            nextClassName="page-item"
+                            nextLinkClassName="page-link"
+                            breakLabel="..."
+                            breakClassName="page-item"
+                            breakLinkClassName="page-link"
+                            containerClassName="pagination"
+                            activeClassName="active"
+                            renderOnZeroPageCount={null}
+                            forcePage={page - 1}
+                        />
                     </nav>
                 </div>
             </div>
@@ -253,10 +336,22 @@ export function ActionBtn(prop: any) {
 }
 
 export function DateForamate(prop) {
-    console.log(prop)
     let date = new Date(prop.value);
     return format(date, "MM/dd/yyyy hh:mm a");
 }
 
+export const paginationsOptions = [
+    { value: '5', label: '5' },
+    { value: '10', label: '10' },
+    { value: '20', label: '20' },
+    { value: '30', label: '30' },
+    { value: '50', label: '50' },
+    { value: '100', label: '100' },
+    { value: '200', label: '200' },
+];
 
+export const filterStatusOptions = [
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+]
 export const CommonListComponent = CommonList

@@ -70,7 +70,7 @@ export default function RootLayout({
           className={"navbar-brand ps-3 " + ckPath("/dashbord")}
           href="/dashbord"
         >
-          Teja Next Practice
+          Next
         </Link>
         <button
           className="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0"
@@ -99,7 +99,7 @@ export default function RootLayout({
                 {user.first_name} {user.last_name}
               </b>
               <i>
-                <Image 
+                <Image
                   src={user.profile || "https://img.icons8.com/bubbles/150/000000/user.png"}
                   alt=" {user.first_name} {user.last_name}"
                   width={25}

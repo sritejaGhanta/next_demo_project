@@ -30,8 +30,10 @@ export interface USER {
 }
 
 export interface COMMON_LIST_COMPONENT_INTERFACE {
+    name: string,
+    description?: string,
     colDefs: ColDef[],
-    defaultColDef: any,
+    default_col_def: any,
     api_url?: {
         add?: string,
         update?: string,
@@ -47,19 +49,26 @@ export interface COMMON_LIST_COMPONENT_INTERFACE {
         delete?: boolean,
         refresh?: boolean,
         status?: boolean,
+        search?: boolean,
+        sort?: boolean
         pagination?: boolean,
-        search?: boolean
     },
+    actions_options?: {
+        pagination_options?: { value: string, label: string }[],
+        filter_status_options?: { value: string, label: string }[],
+    }
     add_update_actions?: {
         add?: {
             pop_up?: boolean,
-            redirect: boolean,
             pop_up_component?: any
+            redirect?: boolean,
+            redirect_url?: string
         },
         update: {
             pop_up?: boolean,
-            redirect: boolean,
-            pop_up_component?: any
+            pop_up_component?: any,
+            redirect?: boolean,
+            redirect_url?: string
         },
     }
     list_data?: boolean,

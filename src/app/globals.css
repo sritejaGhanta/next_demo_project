@@ -51,6 +51,39 @@
     z-index: 1000;
 }
 
-.select__menu{
-    
+/* .select__indicators{
+    display: none !important;
+} */
+
+#container {
+    margin: 1rem;
 }
+
+.items {
+    margin-bottom: 1rem;
+}
+
+
+.pagination-nav {
+    display: flex;
+}
+
+.common-action-btn {
+    display: flex;
+    justify-content: center;
+}
+.navbar-toggler{
+    display: none;
+}
+
+@media screen and (max-width: 600) {
+    .common-action-btn {
+        display: none;
+    }
+    .navbar-toggler{
+        display: block;
+    }
+
+}
+
+

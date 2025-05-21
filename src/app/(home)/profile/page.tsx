@@ -37,7 +37,7 @@ export default function Profile() {
 		setPreviewImage(user.profile || "https://img.icons8.com/bubbles/150/000000/user.png")
 	}, [user])
 
-	const subite = useCallback((value) => {
+	const submit = useCallback((value) => {
 		const updateUserProfile = new Promise((resolve, reject) => {
 			Axios.put(
 				ROUTE.USER.UPDATE_PROFILE,
@@ -151,7 +151,7 @@ export default function Profile() {
 													if (profileImage) {
 														form.append("profile", profileImage);
 													}
-													subite(form);
+													submit(form);
 												}}
 											>
 												{({

@@ -27,7 +27,15 @@ export async function POST(request: Request, responce) {
             id_in: reqData.ids
         }
 
-        let contactsList = await ContactService.getAllContacts(whereCondition);
+        let { data: contactsList } = await ContactService.getAllContacts(whereCondition, 0);
+        for (let i = 0; i < contactsList.length; i++) {
+            const e = {
+                ...contactsList[i],
+                status: value.status
+            };
+
+            await ContactService.updateContact(e);
+        }
 
         if (!contactsList.length) {
             throw "No records found."

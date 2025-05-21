@@ -31,18 +31,59 @@ class ContactServiceClass {
      * @param whereCondition
      * @returns Array Objects
      */
-    getAllContacts = async (whereCondition) => {
+    getAllContacts = async (whereCondition, needCount = 0) => {
         let where: any = {};
+        const contact = this.contacts.createQueryBuilder('c')
 
         if (whereCondition.user_id) {
-            where.user_id = whereCondition.user_id;
+            contact.where(`c.iUserId = ${whereCondition.user_id}`)
         }
 
         if (whereCondition.id_in) {
-            where.id = whereCondition.id_in;
+            contact.where(`c.iContactId IN (${whereCondition.id_in.join(',')})`);
         }
 
-        return await this.contacts.findBy(where)
+        if (whereCondition.status) {
+            contact.andWhere(`c.eStatus IN  ('${whereCondition.status}')`);
+        }
+
+        if (whereCondition.keyword) {
+            contact.andWhere(`(c.vName LIKE "%${whereCondition.keyword}%" OR c.vPhoneNumber LIKE "%${whereCondition.keyword}%" OR c.eStatus LIKE "%${whereCondition.keyword}%")`)
+        }
+
+        if (whereCondition.sort) {
+            whereCondition.sort.forEach(field => {
+                const dir = field.dir == "desc" ? "DESC" : "ASC";
+                if (field.prop == "name" && dir) {
+                    contact.orderBy("c.vName", dir);
+                }
+
+                if (field.prop == "phone_number" && dir) {
+                    contact.orderBy("c.vPhoneNumber", dir)
+                }
+
+                if (field.prop == "status" && dir) {
+                    contact.orderBy("c.eStatus", dir)
+                }
+
+                if (field.prop == "adt" && dir) {
+                    contact.orderBy("c.dtAddedDate", dir)
+                }
+            })
+        }
+
+        let count = 0;
+        if (needCount) {
+            count = await contact.getCount();
+        }
+        contact.limit(whereCondition.limit);
+        contact.offset(whereCondition.offset);
+        console.log(contact.getQuery());
+
+        return {
+            data: await contact.getMany(),
+            count: count
+        }
     }
 
     /**

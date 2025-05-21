@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DefaultResponse } from "../../../../general/general";
 import Joi, { object } from "joi"
-import { uploadFile } from "../../../../file.service";
+import { getFile, uploadFile } from "../../../../file.service";
 import { ContactService } from "../../../../services/contacts.service";
 const folderName = 'contact_images'
 
@@ -21,14 +21,15 @@ export async function GET(request: NextRequest, { params }, responce: NextRespon
             throw "Please provide valid id"
         }
 
-        const contact = await ContactService.getContact({ 
-            id: params.id, 
-            user_id:  tokenData.id
+        const contact = await ContactService.getContact({
+            id: params.id,
+            user_id: tokenData.id
         });
 
-        if(!Object.keys(contact)){
+        if (!Object.keys(contact)) {
             throw "Contact not found.!"
         }
+        contact.image = getFile(contact.image, folderName);
 
         DefaultResponse.data = contact;
         DefaultResponse.success = 1;

@@ -3,7 +3,10 @@ export interface API_RESPONSE {
         success: 0 | 1,
         message: string,
         page?: number,
-        token?: string
+        count?: number,
+        total_pages?: number,
+        next_page?: number,
+        token?: string,
         status?: number
     },
     data: any
@@ -26,5 +29,5 @@ export interface USER {
     phone_number: string,
     gender: string,
     adt: string,
-    mdt: string
+    mdt: string,
 }

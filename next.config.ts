@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
       'img.icons8.com', 
       'avatars.githubusercontent.com',
       'localhost',
-      '192.168.20.131'
+      '192.168.20.131',
+      'example.com'
     ],
   },
 
