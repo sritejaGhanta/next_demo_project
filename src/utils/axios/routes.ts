@@ -16,7 +16,7 @@ export const ROUTE = {
         LIST : "/api/contacts/list",
         CREATE: "/api/contacts/save",
         UPDATE: "/api/contacts/save",
-        DELETE: "/api/contacts/delte",
+        DELETE: "/api/contacts/delete",
         STATUS: "/api/contacts/status"
     }
 }

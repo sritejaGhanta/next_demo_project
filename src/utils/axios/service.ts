@@ -76,6 +76,10 @@ class AxiosClass {
     put(path: string, params: any = {}, headers: any = {}) {
         return this.ax.put(path, params, { headers })
     }
+
+    delete(path: string, params: any = {}, headers: any = {}) {
+        return this.ax.delete(path, { headers, params })
+    }
 }
 
 export const Axios = new AxiosClass();

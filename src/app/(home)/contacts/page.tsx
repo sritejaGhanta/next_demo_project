@@ -3,12 +3,44 @@
 import { ColDef } from "ag-grid-community";
 import { ActionBtn, CommonListComponent, DateForamate, filterStatusOptions, paginationsOptions } from "../../../components/list.component";
 import { ROUTE } from "../../../utils/axios/routes";
-import { memo } from "react";
-import { COMMON_LIST_COMPONENT_INTERFACE } from "../../../utils/general/interface";
+import { memo, useCallback } from "react";
+import { API_RESPONSE, COMMON_LIST_COMPONENT_INTERFACE } from "../../../utils/general/interface";
 import Link from "next/link";
 import Image from "next/image";
+import { Axios } from "../../../utils/axios/service";
+import { toast } from "react-toastify";
 
 export default function ContactsPage() {
+
+    const deleteRecord = useCallback((prop) => {
+        console.log(prop)
+        const delte = useCallback((deleteId) => {
+            const selectedRow = prop.api.getFocusedCell()
+            const id = this.gridOptions.rowData[selectedRow.rowIndex].i
+
+            this.gridOptions.rowData.splice(selectedRow.rowIndex, 1)
+            prop.api.setRowData(this.gridOptions.rowData)
+            // if (id) {
+            //     let conform = confirm("Are you want to delete this contact")
+            //     if (conform) {
+            //         Axios.delete(ROUTE.CONTACTS.DELETE + "/" + deleteId).then((e: API_RESPONSE) => {
+            //             console.log(e)
+            //             if (e.settings.success) {
+            //                 toast.success(e.settings.message)
+            //             } else {
+            //                 toast.error(e.settings.success)
+            //             }
+            //         })
+            //     }
+            // }
+
+        }, [])
+
+        return <button className="btn btn-danger" onClick={() => delte(prop.data.id)}>
+            <i className="bi bi-trash"></i>
+        </button>
+    }, []);
+
     const commonInput: COMMON_LIST_COMPONENT_INTERFACE = {
         "name": "Contacts",
         "description": "Contacts page",
@@ -19,7 +51,7 @@ export default function ContactsPage() {
                 "sortable": false,
                 "width": 352,
                 "cellRenderer": (prop) => {
-                    return <img src={prop.value} alt={prop.data.name}/>
+                    return <img src={prop.value} alt={prop.data.name} />
                 }
             },
             {
@@ -55,7 +87,7 @@ export default function ContactsPage() {
             },
             {
                 "headerName": "Action",
-                "cellRenderer": ActionBtn,
+                "cellRenderer": deleteRecord,
                 "sortable": false,
                 "width": 100
             }
