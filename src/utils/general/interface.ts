@@ -34,6 +34,8 @@ export interface COMMON_LIST_COMPONENT_INTERFACE {
     description?: string,
     colDefs: ColDef[],
     default_col_def: any,
+    common_ref: any,
+    list_record_primary_key?: string;
     api_url?: {
         add?: string,
         update?: string,

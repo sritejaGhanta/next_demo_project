@@ -3,7 +3,7 @@ import React from 'react'
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { API_RESPONSE, COMMON_LIST_COMPONENT_INTERFACE } from "../utils/general/interface";
 import { AgGridReact } from 'ag-grid-react';
-import { AllCommunityModule, CheckboxEditorModule, ClientSideRowModelModule, ColDef, DateEditorModule, DateFilterModule, IDateFilterParams, ModuleRegistry, NumberEditorModule, NumberFilterModule, provideGlobalGridOptions, RowSelectionModule, RowSelectionOptions, TextEditorModule, TextFilterModule, themeAlpine, themeBalham, themeQuartz, ValidationModule } from 'ag-grid-community';
+import { AllCommunityModule, CheckboxEditorModule, ClientSideRowModelModule, ColDef, colorSchemeDark, DateEditorModule, DateFilterModule, IDateFilterParams, ModuleRegistry, NumberEditorModule, NumberFilterModule, provideGlobalGridOptions, RowSelectionModule, RowSelectionOptions, TextEditorModule, TextFilterModule, themeAlpine, themeBalham, themeQuartz, ValidationModule } from 'ag-grid-community';
 import { Axios } from "../utils/axios/service";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
@@ -42,7 +42,6 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
     const [grid, setGrid] = useState(null);
     const [pagination, setPagination] = useState<any>({})
     const Grid = useMemo(() => grid?.api, [grid])
-
 
     const changeDetectionsArr = [status, keyword, page, limit, sort];
 
@@ -97,7 +96,6 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
 
     // Sort changes
     const sortChange = useCallback((sortField) => {
-        console.log(sortField)
         if (prop.actions.sort) {
             let sortDir = []
             sortField.columns.forEach(field => {
@@ -110,7 +108,6 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
             })
             setSort(sortDir)
         }
-
     }, []);
 
     // Update Row(s) Status
@@ -137,6 +134,24 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
             toast.error("Please select atleat one contact.")
         }
     }, []);
+
+    // Delte Record(s)
+    const deleteRecord = useCallback(async () => {
+        let id = prop.list_record_primary_key || 'id';
+        const deleteIds = Grid.getSelectedNodes().map(e => e.data[id]);
+        if (deleteIds.length) {
+            Axios.delete(prop.api_url.delete + '/' + deleteIds.join('/')).then((res: API_RESPONSE) => {
+                let state = res.settings.success ? "success" : "error";
+                toast[state](res.settings.message);
+                if (res.settings.success) {
+                    setPage(1);
+                    callApi();
+                }
+            })
+        } else {
+            toast.error("Please select minimum one record.")
+        }
+    }, [])
 
     // Call List Api
     const callApi = useCallback(async () => {
@@ -173,6 +188,14 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
     useEffect(() => {
         callApi()
     }, changeDetectionsArr);
+
+    useEffect(() => {
+        prop.common_ref.current = {
+            refresh: callApi,
+            grid: Grid,
+            setPage: setPage
+        };
+    })
 
     return <>
         <div className="container-fluid py-4"> {/* Use container-fluid for full width */}
@@ -254,6 +277,12 @@ function CommonList(prop: COMMON_LIST_COMPONENT_INTERFACE) {
                                     <i className="bi bi-unlock"></i>
                                 </button>
                             </>
+                        }
+                        {/* delete Button */}
+                        {(prop.actions.delete) &&
+                            <button className="btn btn-danger me-2" onClick={() => deleteRecord()}>
+                                <i className="bi bi-trash"></i>
+                            </button>
                         }
 
                         {/* Add Button  */}

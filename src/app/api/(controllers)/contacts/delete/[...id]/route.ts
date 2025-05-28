@@ -21,15 +21,16 @@ export async function DELETE(request: NextRequest, { params }, responce: NextRes
             throw "Please provide valid id"
         }
 
-        const contact = await ContactService.getContact({ 
-            id: params.id, 
-            user_id:  tokenData.id
+        const contact = await ContactService.getContact({
+            ids: params.id,
+            user_id: tokenData.id
         });
 
-        if(!Object.keys(contact)){
+        if (!Object.keys(contact)) {
             throw "Contact not found.!"
         }
 
+        console.log(contact)
 
         DefaultResponse.data = await ContactService.deleteContact(params.id);
         DefaultResponse.success = 1;

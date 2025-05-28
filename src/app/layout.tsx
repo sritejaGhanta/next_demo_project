@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "./StoreProvider";
-import { AppInitializer, Loder, Notification, SessionProvider } from "./layout.imports";
+import { AppInitializer, Loder, SessionProvider } from "./layout.imports";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./api/(controllers)/auth/[...nextauth]/route"; // Removed this import
 import { Bounce, ToastContainer, toast } from 'react-toastify';

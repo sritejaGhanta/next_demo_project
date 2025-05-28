@@ -1,6 +1,7 @@
 import db from "../database/connection";
 import "reflect-metadata";
 import { ContatsEntity } from "../database/scema/contacts.entity";
+import { In } from "typeorm";
 
 class ContactServiceClass {
     db = db;
@@ -14,16 +15,20 @@ class ContactServiceClass {
      */
     getContact = async (whereCondition) => {
         let where: any = {};
+        const find = whereCondition.id ? "findOne" : "find";
 
         if (whereCondition.id) {
             where.id = whereCondition.id;
+        }
+        if (whereCondition.ids) {
+            where.id = In(whereCondition.ids);
         }
 
         if (whereCondition.user_id) {
             where.user_id = whereCondition.user_id;
         }
 
-        return await this.contacts.findOne({ where })
+        return await this.contacts[find]({ where })
     }
 
     /**

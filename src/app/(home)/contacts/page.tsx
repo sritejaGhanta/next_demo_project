@@ -3,7 +3,7 @@
 import { ColDef } from "ag-grid-community";
 import { ActionBtn, CommonListComponent, DateForamate, filterStatusOptions, paginationsOptions } from "../../../components/list.component";
 import { ROUTE } from "../../../utils/axios/routes";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useRef } from "react";
 import { API_RESPONSE, COMMON_LIST_COMPONENT_INTERFACE } from "../../../utils/general/interface";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,29 +11,25 @@ import { Axios } from "../../../utils/axios/service";
 import { toast } from "react-toastify";
 
 export default function ContactsPage() {
+    const commonRef = useRef<any>({})
 
     const deleteRecord = useCallback((prop) => {
-        console.log(prop)
         const delte = useCallback((deleteId) => {
-            const selectedRow = prop.api.getFocusedCell()
-            const id = this.gridOptions.rowData[selectedRow.rowIndex].i
+            if (deleteId) {
+                let conform = confirm("Are you want to delete this contact")
+                if (conform) {
+                    Axios.delete(ROUTE.CONTACTS.DELETE + "/" + deleteId).then((e: API_RESPONSE) => {
+                        if (e.settings.success) {
+                            toast.success(e.settings.message);
+                            commonRef.current.setPage(1)
+                            commonRef.current.refresh()
 
-            this.gridOptions.rowData.splice(selectedRow.rowIndex, 1)
-            prop.api.setRowData(this.gridOptions.rowData)
-            // if (id) {
-            //     let conform = confirm("Are you want to delete this contact")
-            //     if (conform) {
-            //         Axios.delete(ROUTE.CONTACTS.DELETE + "/" + deleteId).then((e: API_RESPONSE) => {
-            //             console.log(e)
-            //             if (e.settings.success) {
-            //                 toast.success(e.settings.message)
-            //             } else {
-            //                 toast.error(e.settings.success)
-            //             }
-            //         })
-            //     }
-            // }
-
+                        } else {
+                            toast.error(e.settings.success)
+                        }
+                    })
+                }
+            }
         }, [])
 
         return <button className="btn btn-danger" onClick={() => delte(prop.data.id)}>
@@ -44,6 +40,8 @@ export default function ContactsPage() {
     const commonInput: COMMON_LIST_COMPONENT_INTERFACE = {
         "name": "Contacts",
         "description": "Contacts page",
+        "common_ref": commonRef,
+        "list_record_primary_key": "id",
         "colDefs": [
             {
                 "headerName": "Image",
